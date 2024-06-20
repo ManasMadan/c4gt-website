@@ -18,7 +18,7 @@ class UserLoginHandler:
         logging.info(password)
         if cloud.authenticate.user.authenticate_user(user, password):
             logging.info("authenticate succeeded")
-            response = redirect(url_for('save'))
+            response = redirect(url_for('save_get'))
             response.set_cookie('user', user)
         else:
             logging.info("authenticate failed")
