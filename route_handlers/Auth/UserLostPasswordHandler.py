@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, make_response
+from flask import render_template, request, make_response
 import logging
 import cloud
 import string

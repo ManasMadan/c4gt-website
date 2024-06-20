@@ -1,4 +1,4 @@
-from flask import Flask, g, session, redirect, url_for
+from flask import Flask, g, session
 from flask_sqlalchemy import SQLAlchemy
 import json
 from dotenv import load_dotenv
@@ -10,6 +10,8 @@ from route_handlers.Auth.UserRegisterHandler import UserRegisterHandler
 from route_handlers.Auth.UserLostPasswordHandler import UserLostPasswordHandler
 from route_handlers.Auth.UserLogoutHandler import UserLogoutHandler
 from route_handlers.SaveHandler import SaveHandler
+from route_handlers.HomeHandler import HomeHandler
+from route_handlers.UserSheetHandler import UserSheetHandler
 
 # Load environment variables from .env file
 load_dotenv()
@@ -64,9 +66,7 @@ def teardown_db(error):
 # Routes
 @app.route('/', methods=['GET'])
 def index():
-    if 'user' in session:
-        return f"Hello, {session['user']}!"
-    return redirect(url_for('login_get'))
+    return HomeHandler.get()
 
 @app.route('/login', methods=['GET'])
 def login_get():
@@ -107,6 +107,10 @@ def save_get():
 @app.route('/save', methods=['POST'])
 def save_post():
     return SaveHandler.post()
+
+@app.route('/usersheet', methods=['POST'])
+def usersheet_post():
+    return UserSheetHandler.post()
 
 if __name__ == '__main__':
     app.run(debug=True)

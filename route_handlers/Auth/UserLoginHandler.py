@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, make_response
+from flask import render_template, request, redirect, make_response,session
 import logging
 import cloud
 
@@ -6,7 +6,7 @@ class UserLoginHandler:
     @staticmethod
     def get():
         response = make_response(render_template("userlogin.html", user=None))
-        response.delete_cookie('user')
+        session.pop('user', None)
         return response
 
     @staticmethod
@@ -18,9 +18,9 @@ class UserLoginHandler:
         logging.info(password)
         if cloud.authenticate.user.authenticate_user(user, password):
             logging.info("authenticate succeeded")
-            response = redirect(url_for('save_get'))
-            response.set_cookie('user', user)
+            response = redirect('/save')
+            session['user'] = user
         else:
             logging.info("authenticate failed")
-            response = redirect(url_for('login_get'))
+            response = redirect('login')
         return response

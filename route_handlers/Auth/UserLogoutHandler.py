@@ -1,4 +1,4 @@
-from flask import redirect, url_for, session
+from flask import redirect, session
 
 class UserLogoutHandler:
     @staticmethod
@@ -6,4 +6,4 @@ class UserLogoutHandler:
         # Clear the user session
         session.pop('user', None)
         # Redirect to the login page
-        return redirect(url_for('login'))
+        return redirect('login')

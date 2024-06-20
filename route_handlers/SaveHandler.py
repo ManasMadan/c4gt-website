@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, session,jsonify
+from flask import render_template, request, redirect, session,jsonify
 import logging
 from cloud.storage.storage import getFile,createDir,createFile,updateFile
 import json
@@ -7,9 +7,7 @@ class SaveHandler:
     @staticmethod
     def get():
         if 'user' not in session:
-            # TODO
-            # return redirect(url_for('dev'))
-            return "Not Logged in"
+            return redirect('/')
         
         user = session['user']
 
@@ -39,9 +37,7 @@ class SaveHandler:
 
     def post(self):
         if 'user' not in session:
-            # TODO
-            # return redirect(url_for('dev'))
-            return "Not Logged in"
+            return redirect('/')
         
         user = session['user']
 
