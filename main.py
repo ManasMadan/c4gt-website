@@ -32,6 +32,10 @@ app.config.update(
 # Initialising Database
 db = SQLAlchemy(app)
 
+@app.context_processor
+def inject_app_title():
+    return dict(APP_TITLE=app.config['APP_TITLE'])
+
 # Base Handlers
 class BaseHandler:
     @property

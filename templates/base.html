@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>{{ app_title }}</title>
+    <title>{{ APP_TITLE }}</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='screen.css') }}"
@@ -15,7 +15,8 @@
       <hr class="space" />
       <h2><a href="/">Aspiring Investments</a></h2>
 
-      {% if user %} user: {{ user }} <a href="/logout">logout</a>
+      {% if session['user'] %} user: {{session['user']}}
+      <a href="/logout">logout</a>
       {% endif %}
 
       <hr />
