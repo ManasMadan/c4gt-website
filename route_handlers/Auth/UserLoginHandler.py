@@ -5,8 +5,8 @@ import cloud
 class UserLoginHandler:
     @staticmethod
     def get():
-        response = make_response(render_template("userlogin.html", user=None))
         session.pop('user', None)
+        response = make_response(render_template("userlogin.html", user=None))
         return response
 
     @staticmethod
