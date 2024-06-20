@@ -15,7 +15,7 @@ from boto.s3.key import Key
 connection = S3Connection('AKIAJYDVZNWU67LRDR6Q','hQiTbN2CNi51Cc0WeNIr+Zty7ytQw2N2401oyWjd')
 AspiringStorageBucket = "aspiring-cloud-storage"
 
-print "Starting cloud import"
+print("Starting cloud import");
 
 #
 # The following are the base ITEM key, value APIs
@@ -134,7 +134,7 @@ def createDir(path):
     spath = pathToString(path)
     data = getItem(spath)
     if (data != None):
-        print "dir exists"
+        print("dir exists");
         return False
     # create the dir file
     dirdata = {}
@@ -142,9 +142,9 @@ def createDir(path):
     dirdata["path"] = path
     dirdata["type"] = "dir"
     if not (putItem(spath, json.dumps(dirdata))):
-        print "putitem failed"
+        print("putitem failed");
         return False
-    #print "createDir passed"    
+    #print("createDir passed"    );
     return True
     
     
@@ -166,7 +166,7 @@ def getFileRaw(path):
 # may be
 def getFile(path):
     data = getFileRaw(path)
-    print "getfile",data
+    print("getfile",data);
     if data == None:
         return None
     if data["type"] == "dir":
@@ -187,17 +187,17 @@ def getFile(path):
 def createFile(path, data):
     # make sure parent dir exists
     if len(path) <= 1:
-        print "parent path failed"
+        print("parent path failed");
         return False
     ppath = path[:-1]    
     parentdata = getFileRaw(ppath)
     if parentdata == None:
-        print "parent data failed"        
+        print("parent data failed"        );
         return False
     # check if file exists
     spath = pathToString(path)
     if getItem(spath) != None:
-        print "file exists failed"                
+        print("file exists failed"                );
         return False
     # update the file
     filedata = {}
@@ -205,7 +205,7 @@ def createFile(path, data):
     filedata["path"] = path
     filedata["type"] = "file"
     if (not putItem(spath, json.dumps(filedata))):
-        print "putfile failed"                
+        print("putfile failed"                );
         return False
     # the update the directory
     fname = path[len(path)-1]
@@ -214,7 +214,7 @@ def createFile(path, data):
     parentdata["data"] = json.dumps(fileslist)    
     if (not putItem(pathToString(ppath), json.dumps(parentdata))):
         # this is unexpected, unwind !
-        print "putdir failed"                        
+        print("putdir failed"                        );
         deleteFile(path)
         return False
     return True
@@ -238,7 +238,7 @@ def updateFile(path, data):
 def deleteFile(path):
     filedata = getFileRaw(path)
     if filedata == None or filedata["type"] != "file":
-        print "file does not exist"
+        print("file does not exist");
         return False
     #
     # update the parent directory first
@@ -246,7 +246,7 @@ def deleteFile(path):
     ppath = path[:-1]    
     parentdata = getFileRaw(ppath)
     if parentdata == None:
-        print "parent data failed"        
+        print("parent data failed"        );
         return False
     fileslist = json.loads(parentdata["data"])
     newlist = []
@@ -259,11 +259,11 @@ def deleteFile(path):
     parentdata["data"] = json.dumps(newlist)
     if (not putItem(pathToString(ppath), json.dumps(parentdata))):
         # this is unexpected, unwind !
-        print "putdir failed"                        
+        print("putdir failed"                        );
         return False
     # then delete the file
     if not deleteItem(pathToString(path)):
-        print "delete file failed"
+        print("delete file failed");
         return False
     return True
 
@@ -272,70 +272,70 @@ def deleteFile(path):
 
 def unitTestItems():
     putItem("foobar1","test1")
-    print getItem("foobar1")
+    print(getItem("foobar1"))
     putItem("foobar2","test2")    
-    print getItem("foobar2")
+    print(getItem("foobar2"))
     deleteItem("foobar1")
     deleteItem("foobar2")
-    print getItem("foobar1")    
-    print getItem("foobar2")    
+    print(getItem("foobar1")    )
+    print(getItem("foobar2")    )
 
 def unitTestItemsInBucket():
     bkt_name = "aspiring-pdf-files"
     putItem("foobar1","test1", bkt_name)
-    print existsItem("foobar1", bkt_name)
-    print getItem("foobar1", bkt_name)
+    print(existsItem("foobar1", bkt_name))
+    print(getItem("foobar1", bkt_name))
     putItem("foobar2","test2", bkt_name)    
-    print existsItem("foobar2", bkt_name)
-    print getItem("foobar2", bkt_name)
+    print(existsItem("foobar2", bkt_name))
+    print(getItem("foobar2", bkt_name))
     deleteItem("foobar1", bkt_name)
     deleteItem("foobar2", bkt_name)
-    print existsItem("foobar1", bkt_name)
-    print existsItem("foobar1", bkt_name)
-    print getItem("foobar1", bkt_name)    
-    print getItem("foobar2", bkt_name)    
+    print(existsItem("foobar1", bkt_name))
+    print(existsItem("foobar1", bkt_name))
+    print(getItem("foobar1", bkt_name)    )
+    print(getItem("foobar2", bkt_name)    )
 
 
 def unitTestFiles():
     path = ["home","demo"]
-    print "--create dir--"
+    print("--create dir--");
     createDir(path)
-    print getFileRaw(path)
+    print(getFileRaw(path))
     fpath = path[:]
     fpath.append("fname")
-    print "--del file--"    
+    print("--del file--"    );
     deleteFile(fpath)
-    print "--create file--"        
+    print("--create file--"        );
     createFile(fpath, "FileData Test1")
-    print getFileRaw(fpath)
-    print getFileRaw(path)
-    print str(getFile(fpath))
-    print "--update file--"        
+    print(getFileRaw(fpath))
+    print(getFileRaw(path))
+    print(str(getFile(fpath)))
+    print("--update file--"        );
     updateFile(fpath, "FileData Test2")
-    print getFileRaw(fpath)
-    print getFileRaw(path)
-    print str(getFile(fpath))
-    print "--create second file--"
+    print(getFileRaw(fpath))
+    print(getFileRaw(path))
+    print(str(getFile(fpath)))
+    print("--create second file--");
     fpath2 = path[:]
     fpath2.append("fname2")    
     createFile(fpath2, "FileData2 Test1")
-    print getFileRaw(fpath2)
-    print getFileRaw(path)
-    print str(getFile(fpath2))
-    print "--update second file--"        
+    print(getFileRaw(fpath2))
+    print(getFileRaw(path))
+    print(str(getFile(fpath2)))
+    print("--update second file--"        );
     updateFile(fpath2, "FileData2 Test2")
-    print getFileRaw(fpath2)
-    print getFileRaw(path)
-    print str(getFile(fpath2))
-    print "--del file--"    
+    print(getFileRaw(fpath2))
+    print(getFileRaw(path))
+    print(str(getFile(fpath2)))
+    print("--del file--"    );
     deleteFile(fpath)
-    print getFileRaw(path)
-    print str(getFile(fpath))
+    print(getFileRaw(path))
+    print(str(getFile(fpath)))
     deleteFile(fpath2)
-    print getFileRaw(path)
-    print str(getFile(fpath))
+    print(getFileRaw(path))
+    print(str(getFile(fpath)))
     
-print "Cloud imported"
+print("Cloud imported");
 
 if __name__ == "__main__":
     # unit tests here
