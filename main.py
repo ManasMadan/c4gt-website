@@ -13,6 +13,7 @@ from route_handlers.Auth.PWResetHandler import PWResetHandler
 from route_handlers.SaveHandler import SaveHandler
 from route_handlers.HomeHandler import HomeHandler
 from route_handlers.UserSheetHandler import UserSheetHandler
+from route_handlers.DownloadFileHander import DownloadFileHander
 
 # Load environment variables from .env file
 load_dotenv()
@@ -124,6 +125,10 @@ def pwreset_get():
 @app.route('/pwreset', methods=['POST'])
 def pwreset_post():
     return PWResetHandler.post()
+
+@app.route('/downloadfile', methods=['POST'])
+def download_post():
+    return DownloadFileHander.post()
 
 if __name__ == '__main__':
     app.run(debug=True)
