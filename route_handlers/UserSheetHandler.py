@@ -13,7 +13,7 @@ class UserSheetHandler:
     @staticmethod
     def post():
         if 'user' not in session:
-            return redirect('/dev')
+            return redirect('/')
         user = session['user']
 
         fname = request.form.get("pagename")
