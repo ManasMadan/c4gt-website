@@ -44,6 +44,4 @@ class UserSheetHandler:
         }
 
         # Render template with entry data
-        # TODO
-        return "TODO : UserSheetHandler.py"
-        # return render_template("importcollabload.html", entry=entry)
+        return render_template("importcollabload.html", entry=entry)
