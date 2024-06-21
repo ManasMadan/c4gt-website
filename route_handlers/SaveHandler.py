@@ -33,7 +33,7 @@ class SaveHandler:
 
         return render_template("allusersheets.html", entries=entries)
 
-    def post(self):
+    def post():
         if 'user' not in session:
             return redirect('/')
         

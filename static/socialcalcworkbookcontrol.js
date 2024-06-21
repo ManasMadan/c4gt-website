@@ -1959,7 +1959,7 @@ SocialCalc.Callbacks.ToggleCell = function()
     var cellname = editor.ecell.coord;
 
     var value = SocialCalc.GetCellDataValue(cellname);   
-	if(value == 0) return
+	if(typeof value !== Array) return
 
     console.log(cellname)
     console.log(value)
