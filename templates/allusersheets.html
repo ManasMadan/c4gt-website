@@ -40,7 +40,6 @@
 <div class="span-8" align="center">
   <form action="{{ url_for('usersheet_post') }}" method="POST">
     <div>
-      <div id="pageNavPosition"></div>
       <table id="template-apps">
         {% for entry in entries %}
         <tr>
@@ -73,6 +72,8 @@
         {% endfor %}
       </table>
 
+      <div id="pageNavPosition"></div>
+
       <input id="pagename" name="pagename" type="hidden" value="" />
       <input id="edit" name="edit" type="hidden" value="no" />
       <input id="view" name="view" type="hidden" value="no" />
@@ -87,10 +88,13 @@
 </div>
 
 <script type="text/javascript">
-  var pager = new Pager("template-apps", 15);
-  pager.init();
-  pager.showPageNav("pager", "pageNavPosition");
-  pager.showPage(1);
+  var pager;
+  document.addEventListener("DOMContentLoaded", function () {
+    pager = new Pager("template-apps", 1);
+    pager.init();
+    pager.showPageNav("pager", "pageNavPosition");
+    pager.showPage(1);
+  });
 </script>
 
 {% endblock %}

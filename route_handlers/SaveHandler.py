@@ -29,11 +29,9 @@ class SaveHandler:
 
         entries = dirobj.files
         logging.info(entries)
-        argument = {'user': user, 'entries': entries}
         logging.info("done")
-        logging.info(str(argument['entries']))
 
-        return render_template("allusersheets.html", argument=argument)
+        return render_template("allusersheets.html", entries=entries)
 
     def post(self):
         if 'user' not in session:
