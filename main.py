@@ -9,6 +9,7 @@ from route_handlers.Auth.UserLoginHandler import UserLoginHandler
 from route_handlers.Auth.UserRegisterHandler import UserRegisterHandler
 from route_handlers.Auth.UserLostPasswordHandler import UserLostPasswordHandler
 from route_handlers.Auth.UserLogoutHandler import UserLogoutHandler
+from route_handlers.Auth.PWResetHandler import PWResetHandler
 from route_handlers.SaveHandler import SaveHandler
 from route_handlers.HomeHandler import HomeHandler
 from route_handlers.UserSheetHandler import UserSheetHandler
@@ -115,6 +116,14 @@ def save_post():
 @app.route('/usersheet', methods=['POST'])
 def usersheet_post():
     return UserSheetHandler.post()
+
+@app.route('/pwreset', methods=['GET'])
+def pwreset_get():
+    return PWResetHandler.get()
+
+@app.route('/pwreset', methods=['POST'])
+def pwreset_post():
+    return PWResetHandler.post()
 
 if __name__ == '__main__':
     app.run(debug=True)
