@@ -1,17 +1,34 @@
 from flask import  request, Response
+import codecs
+import subprocess
+import logging
+
+def capitalize_first_letter(word):
+    if len(word) > 0:
+        return word[0].upper() + word[1:]
+    else:
+        return word  # Return empty string if input is empty
 
 contenttypes = {
     "MSC": "text/plain",
     "MSCE": "text/plain",
     "HTML": "text/html",
-    "PDF": "application/pdf"
+    "PDF": "application/pdf",
+    "Excel2007": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "Excel5": "application/vnd.ms-excel",
+    "CSV": "text/plain",
+    "ODS": "application/vnd.oasis.opendocument.spreadsheet"
 }
 
 suffix = {
     "MSC": "msc",
     "MSCE": "msce",
     "HTML": "html",
-    "PDF": "pdf"
+    "PDF": "pdf",
+    "Excel2007": "xlsx",
+    "Excel5": "xls",
+    "CSV": "csv",
+    "ODS":"ods"
 }
 
 
@@ -22,23 +39,21 @@ class DownloadFileHander:
         content = request.form.get('content')
 
         if type not in ["MSC", "MSCE", "HTML", "PDF"]:
-            # TODO
-            return "TODO"
-            # fullfname = "./excelinterop/phpexcel/socialcalc/tmp/tmp"
-            # inpfile = fullfname + ".b"
+            fullfname = "excelinterop/tmp/tmp"
+            inpfile = fullfname + ".b"
 
-            # with codecs.open(inpfile, encoding='utf-8', mode="w+") as f:
-            #     f.write(content)
+            with codecs.open(inpfile, encoding='utf-8', mode="w") as f:
+                f.write(content)
+            outfile = fullfname + "." + suffix.get(type, "txt")
+            logging.info(outfile)
+            logging.info(inpfile)
+            cmdname = "excelinterop/export.php"
+            writer = capitalize_first_letter(suffix.get(type, "txt"))
+            output = subprocess.getoutput(f"php {cmdname} {inpfile} {outfile} {writer}")
+            logging.info(output)
 
-            # outfile = fullfname + "." + suffix.get(type, "txt")
-            # logging.info(outfile)
-            # logging.info(inpfile)
-            # cmdname = "./excelinterop/phpexcel/socialcalc/export.php"
-            # output = subprocess.getoutput(f"php {cmdname} {inpfile} {outfile} {type}")
-            # logging.info(output)
-
-            # with open(outfile, 'rb') as f:
-            #     content = f.read()
+            with open(outfile, 'rb') as f:
+                content = f.read()
 
         elif type == "PDF":
             # TODO
