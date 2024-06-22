@@ -1,41 +1,43 @@
 <?php
 
-/** PHPExcel_IOFactory */
-require_once './excelinterop/phpexcel/Classes/PHPExcel/IOFactory.php';
-require_once './excelinterop/phpexcel/socialcalc/socialcalc.inc';
-require_once './excelinterop/phpexcel/socialcalc/sheetnode_phpexcel.import.inc';
+require 'vendor/autoload.php'; // Composer autoload
 
-$workbook = PHPExcel_IOFactory::load($argv['1']);
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
-$numsheets = $workbook->getSheetCount();
+require_once 'excelinterop/socialcalc.inc';
+require_once 'excelinterop/sheetnode_phpexcel.import.inc';
 
-$book = array();
-$sheetarr = array();
- //$book['general']['numsheets'] = $numsheets;
- //$book['general']['currentname'] = $workbook->getActiveSheet()->getTitle();
+$inputFile = $argv[1];
 
-$book['numsheets'] = $numsheets;
-$book['currentname'] = $workbook->getActiveSheet()->getTitle();
+$spreadsheet = IOFactory::load($inputFile);
 
- for ($s = 0; $s < $numsheets; $s++) {
-    $sheet = $workbook->getSheet($s);
-    $sheetsave = _sheetnode_phpexcel_import_do($workbook, $sheet);
+$sheetCount = $spreadsheet->getSheetCount();
 
-    $title = $sheet->getTitle();
+$book = [
+    'numsheets' => $sheetCount,
+    'currentname' => $spreadsheet->getActiveSheet()->getTitle(),
+    'sheetArr' => [],
+];
 
-    //    echo $sheetsave;
+foreach ($spreadsheet->getSheetNames() as $index => $sheetName) {
+    $sheet = $spreadsheet->getSheet($index);
+    $sheetSave = _sheetnode_phpexcel_import_do($spreadsheet, $sheet);
 
-    $sheetarr["Sheet".$s]['name'] = $title;
-    $sheetarr["Sheet".$s]['sheetstr']['savestr'] = $sheetsave;
-    if ($title == $book['currentname']) {
-       $book['currentid'] = "sheet".$s;
-    }   
-}	
-$book['sheetArr'] = $sheetarr;
+    $sheetData = [
+        'name' => $sheetName,
+        'sheetstr' => [
+            'savestr' => $sheetSave,
+        ],
+    ];
+
+    $book['sheetArr']["Sheet$index"] = $sheetData;
+
+    if ($sheetName == $book['currentname']) {
+        $book['currentid'] = "Sheet$index";
+    }
+}
 
 $json = json_encode($book);
-echo "$---$";
+
+echo "$---$"; // Output delimiter (assuming for parsing purposes)
 echo $json;
-
-
-?>

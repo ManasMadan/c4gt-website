@@ -120,8 +120,8 @@ function _sheetnode_phpexcel_import_do($workbook, $sheet) {
   $sc = array(); // SocialCalc array structure
 
   // Default values.
-  $font = $sheet->getDefaultStyle()->getFont();
-  $defaultcolwidth = PHPExcel_Shared_Drawing::cellDimensionToPixels($sheet->getDefaultColumnDimension()->getWidth(), $font);
+  $defaultFont = $sheet->getParent()->getDefaultStyle()->getFont();
+  $defaultcolwidth = $sheet->getDefaultColumnDimension()->getWidth();
   if ($defaultcolwidth > 0) {
     $sc['attribs']['defaultcolwidth'] = $defaultcolwidth;
   } 
@@ -130,8 +130,10 @@ function _sheetnode_phpexcel_import_do($workbook, $sheet) {
     $sc['attribs']['defaultrowheight'] = $defaultrowheight;
   }
   $sc['attribs']['lastrow'] = $sheet->getHighestRow();
-  $sc['attribs']['lastcol'] = PHPExcel_Cell::columnIndexFromString($sheet->getHighestColumn());
+  $lastColumn = $sheet->getHighestColumn();
+  $lastColumnIndex = PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($lastColumn);
 
+  $sc['attribs']['lastcol'] = $lastColumnIndex;
   // Iterate on rows.
   foreach ($rit = $sheet->getRowIterator() as $row) {
     $r = $row->getRowIndex();
@@ -146,10 +148,10 @@ function _sheetnode_phpexcel_import_do($workbook, $sheet) {
     // Iterate on cells.
     foreach ($cit = $row->getCellIterator() as $cell) {
       $ca = $cell->getColumn();
-      $c = PHPExcel_Cell::columnIndexFromString($ca);
+      $c = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($ca);
       $width = $sheet->getColumnDimension($ca)->getWidth();
       if ($width != -1) {
-        $width = PHPExcel_Shared_Drawing::cellDimensionToPixels($width, $font);
+        $width = PhpOffice\PhpSpreadsheet\Shared\Drawing::cellDimensionToPixels($width, $defaultFont);
         if ($width != $sc['attribs']['defaultcolwidth']) {
           $sc['colattribs']['width'][$c] = $width;
         }
@@ -196,21 +198,20 @@ function _sheetnode_phpexcel_import_cell($workbook, $sheet, $cell, &$sc) {
   $c = array(); // output cell
   
   // Position
-  $c['pos'] = array(PHPExcel_Cell::columnIndexFromString($cell->getColumn()), $cell->getRow());
-
+  $c['pos'] = array(PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($cell->getColumn()), $cell->getRow());
   // Value and type
   switch ($cell->getDataType()) {
-  case PHPExcel_Cell_DataType::TYPE_BOOL:
+  case PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_BOOL:
     $c['datavalue'] = (bool)$cell->getValue();
     $c['datatype'] = 'v';
     $c['valuetype'] = 'n';
     break;
-  case PHPExcel_Cell_DataType::TYPE_NUMERIC:
+  case PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC:
     $c['datavalue'] = floatval($cell->getValue());
     $c['datatype'] = 'v';
     $c['valuetype'] = 'n';
     break;
-  case PHPExcel_Cell_DataType::TYPE_STRING:
+  case PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING:
     $text = $cell->getValue();
     if ($text instanceof PHPExcel_RichText) {
       $style = $sheet->getStyle($cell->getCoordinate());
@@ -246,7 +247,7 @@ function _sheetnode_phpexcel_import_cell($workbook, $sheet, $cell, &$sc) {
     }
     $c['datatype'] = 't';
     break;
-  case PHPExcel_Cell_DataType::TYPE_FORMULA:
+  case PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_FORMULA:
     $c['datatype'] = 'f';
     $c['formula'] = ltrim($cell->getValue(), '=');
     try {
@@ -259,10 +260,10 @@ function _sheetnode_phpexcel_import_cell($workbook, $sheet, $cell, &$sc) {
     }
     $c['valuetype'] = is_numeric($c['datavalue']) ? 'n' : 't';
     break;
-  case PHPExcel_Cell_DataType::TYPE_ERROR:
+  case PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_ERROR:
     $c['errors'] = $cell->getValue();
     break;
-  case PHPExcel_Cell_DataType::TYPE_NULL:
+  case PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NULL:
     break;
   }
 
@@ -393,15 +394,27 @@ function _sheetnode_phpexcel_createCSSStyleFont(PHPExcel_Style_Font $pStyle) {
 }
 
 function _sheetnode_phpexcel_insert_hash(&$sc, $key, $style) {
-  $hash = @$sc[$key.'hash'][$style];
-  if (is_null($hash)) {
-    $hash = count($sc[$key.'s']) + 1;
-    $sc[$key.'s'][$hash] = $style;
-    $sc[$key.'hash'][$style] = $hash;
-  }
-  return $hash;
+    // Initialize $hash if it's not set or null
+    $hash = isset($sc[$key.'hash'][$style]) ? $sc[$key.'hash'][$style] : null;
+    
+    if (is_null($hash)) {
+        // Ensure $sc[$key.'s'] is initialized as an array if it's not set
+        if (!isset($sc[$key.'s']) || !is_array($sc[$key.'s'])) {
+            $sc[$key.'s'] = [];
+        }
+        
+        // Calculate the new hash value
+        $hash = count($sc[$key.'s']) + 1;
+        
+        // Assign $style to $sc[$key.'s'] using $hash as the index
+        $sc[$key.'s'][$hash] = $style;
+        
+        // Store $hash in $sc[$key.'hash'] for future reference
+        $sc[$key.'hash'][$style] = $hash;
+    }
+    
+    return $hash;
 }
-
 function _sheetnode_phpexcel_get_font($font) {
   return ($font->getItalic() ? 'italic' : 'normal') .' '.
          ($font->getBold() ? 'bold' : 'normal') .' '.
@@ -411,20 +424,20 @@ function _sheetnode_phpexcel_get_font($font) {
 
 function _sheetnode_phpexcel_get_border($border) {
   $borderstyles = array(
-    PHPExcel_Style_Border::BORDER_NONE => FALSE,
-    PHPExcel_Style_Border::BORDER_THIN => 'thin solid', 
-    PHPExcel_Style_Border::BORDER_MEDIUM => 'medium solid', 
-    PHPExcel_Style_Border::BORDER_DASHED => 'thin dashed', 
-    PHPExcel_Style_Border::BORDER_DOTTED => 'thin dotted', 
-    PHPExcel_Style_Border::BORDER_THICK => 'thick solid', 
-    PHPExcel_Style_Border::BORDER_DOUBLE => 'thin double', 
-    PHPExcel_Style_Border::BORDER_HAIR => 'thin dotted',  // TODO: is it?
-    PHPExcel_Style_Border::BORDER_MEDIUMDASHED => 'medium dashed', 
-    PHPExcel_Style_Border::BORDER_DASHDOT => 'thin dashed', // TODO: is it?
-    PHPExcel_Style_Border::BORDER_MEDIUMDASHDOT => 'medium dashed', //TODO: is it?
-    PHPExcel_Style_Border::BORDER_DASHDOTDOT => 'thin dashed', // TODO: is it?
-    PHPExcel_Style_Border::BORDER_MEDIUMDASHDOTDOT => 'medium dashed', // TODO: is it?
-    PHPExcel_Style_Border::BORDER_SLANTDASHDOT => 'thin dashed', // TODO: is it?
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_NONE => FALSE,
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN => 'thin solid', 
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM => 'medium solid', 
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DASHED => 'thin dashed', 
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DOTTED => 'thin dotted', 
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THICK => 'thick solid', 
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DOUBLE => 'thin double', 
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR => 'thin dotted',  // TODO: is it?
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUMDASHED => 'medium dashed', 
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DASHDOT => 'thin dashed', // TODO: is it?
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUMDASHDOT => 'medium dashed', //TODO: is it?
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DASHDOTDOT => 'thin dashed', // TODO: is it?
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUMDASHDOTDOT => 'medium dashed', // TODO: is it?
+    PhpOffice\PhpSpreadsheet\Style\Border::BORDER_SLANTDASHDOT => 'thin dashed', // TODO: is it?
   );
   $borderstyle = $borderstyles[$border->getBorderStyle()];
   if (!$borderstyle) return FALSE;
@@ -434,22 +447,22 @@ function _sheetnode_phpexcel_get_border($border) {
 
 function _sheetnode_phpexcel_get_cellformat($style) {
   $cellformats = array(
-    PHPExcel_Style_Alignment::HORIZONTAL_GENERAL => FALSE,
-    PHPExcel_Style_Alignment::HORIZONTAL_LEFT => 'left',
-    PHPExcel_Style_Alignment::HORIZONTAL_CENTER => 'center',
-    PHPExcel_Style_Alignment::HORIZONTAL_RIGHT => 'right',
-    PHPExcel_Style_Alignment::HORIZONTAL_JUSTIFY => 'justify',
-    PHPExcel_Style_Alignment::HORIZONTAL_CENTER_CONTINUOUS => 'center', // TODO: is it?
+    PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_GENERAL => FALSE,
+    PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT => 'left',
+    PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER => 'center',
+    PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT => 'right',
+    PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_JUSTIFY => 'justify',
+    PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER_CONTINUOUS => 'center', // TODO: is it?
   );
   return $cellformats[$style->getAlignment()->getHorizontal()];
 }
 
 function _sheetnode_phpexcel_get_layout($style) {
   $valignments = array(
-    PHPExcel_Style_Alignment::VERTICAL_TOP => 'top',
-    PHPExcel_Style_Alignment::VERTICAL_CENTER => 'middle',
-    PHPExcel_Style_Alignment::VERTICAL_BOTTOM => 'bottom', 
-    PHPExcel_Style_Alignment::VERTICAL_JUSTIFY => 'middle', // TODO: is it?
+    PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP => 'top',
+    PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER => 'middle',
+    PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_BOTTOM => 'bottom', 
+    PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_JUSTIFY => 'middle', // TODO: is it?
   );
   $valignment = $valignments[$style->getAlignment()->getVertical()];
   $padding_left = $style->getAlignment()->getIndent();

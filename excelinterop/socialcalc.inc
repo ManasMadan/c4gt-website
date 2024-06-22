@@ -559,8 +559,7 @@ function socialcalc_save_sheet($sheet) {
     $sheetar[] = 'sheet:'. implode(':', $sheetattribs);
   }
 
-  return implode($sheetar, "\n") ."\n";
-}
+return implode("\n", (array) $sheetar) . "\n";}
 
 function socialcalc_save_cell($cell) {
   $line = 'cell:'. socialcalc_cr_to_coord($cell['pos'][0], $cell['pos'][1]);

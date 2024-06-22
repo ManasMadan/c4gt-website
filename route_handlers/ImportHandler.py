@@ -2,6 +2,7 @@ from flask import request, render_template, make_response
 import logging
 import string
 import random
+import subprocess
 
 channels = {}
 sessionfileuploads = {}
@@ -41,16 +42,14 @@ class ImportHandler:
         fcontent = upload_file.read()
 
         if fname[-3:] != "msc" and fname[-4:] != "msce":
-            # TODO
-            return "TODO"
-            # fullfname = f"./excelinterop/phpexcel/socialcalc/tmp/{fname}"
-            # with open(fullfname, 'wb') as f:
-            #     f.write(fcontent)
+            fullfname = f"excelinterop/tmp/{fname}"
+            with open(fullfname, 'wb') as f:
+                f.write(fcontent)
             
-            # cmdname = "./excelinterop/phpexcel/socialcalc/import.php"
-            # output = subprocess.getoutput(f"php {cmdname} {fullfname}")
-            # i = output.index("$---$")
-            # wbook = output[i + 5:]
+            cmdname = "excelinterop/import.php"
+            output = subprocess.getoutput(f"php {cmdname} {fullfname}")
+            i = output.index("$---$")
+            wbook = output[i + 5:]
         else:
             wbook = fcontent.decode('utf-8')
 
