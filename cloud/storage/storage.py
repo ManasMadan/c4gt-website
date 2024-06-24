@@ -4,16 +4,19 @@ Cloud Storage Infrastructure
 using amazon S3
 """
 
-import boto
 import json
 
 from boto.s3.connection import S3Connection
 from boto.s3.key import Key
+from dotenv import load_dotenv
+import os
 
+# Load environment variables from .env file
+load_dotenv()
 
 # S3 connection
-connection = S3Connection('AKIAJYDVZNWU67LRDR6Q','hQiTbN2CNi51Cc0WeNIr+Zty7ytQw2N2401oyWjd')
-AspiringStorageBucket = "aspiring-cloud-storage"
+connection = S3Connection(os.getenv("AWS_ACCESS_KEY_ID"),os.getenv("AWS_SECRET_ACCESS_KEY"))
+AspiringStorageBucket = os.getenv("S3_BUCKET_NAME")
 
 print("Starting cloud import");
 
