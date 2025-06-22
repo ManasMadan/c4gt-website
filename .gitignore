@@ -1,6 +1,8 @@
-env/
+
+.DS_Store
 .env
 .env.example
-.DS_Store
-
 __pycache__/
+env/
+firebase-adminsdk-*.json
+serviceAccountKey.json
