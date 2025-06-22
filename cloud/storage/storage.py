@@ -5,9 +5,7 @@ using amazon S3
 """
 
 import json
-
-from boto.s3.connection import S3Connection
-from boto.s3.key import Key
+import boto3
 from dotenv import load_dotenv
 import os
 
@@ -15,10 +13,14 @@ import os
 load_dotenv()
 
 # S3 connection
-connection = S3Connection(os.getenv("AWS_ACCESS_KEY_ID"),os.getenv("AWS_SECRET_ACCESS_KEY"))
-AspiringStorageBucket = os.getenv("S3_BUCKET_NAME")
+s3_client = boto3.client(
+    's3',
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+)
 
-print("Starting cloud import");
+AspiringStorageBucket = os.getenv("S3_BUCKET_NAME")
+print("Starting cloud import")
 
 #
 # The following are the base ITEM key, value APIs

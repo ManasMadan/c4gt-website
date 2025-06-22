@@ -1,55 +1,42 @@
-from flask import render_template, request, redirect, session,jsonify
+from flask import render_template, request, redirect, session, jsonify
 import logging
-from cloud.storage.storage import getFile,createDir,createFile,updateFile
 import json
+from cloud.storage import firebase_storage as storage
 
 class SaveHandler:
     @staticmethod
     def get():
         if 'user' not in session:
             return redirect('/')
-        
+
         user = session['user']
+        path = f"home/{user}/default.json"
 
-        path = ["home", user]
-        dirobj = getFile(path)
-
-        if not dirobj or len(dirobj.files) == 0:
-            logging.info("no directory")
-            createDir(path)
+        if not storage.existsItem(path):
             filedata = {
                 "user": user,
                 "fname": "default",
                 "data": "\n"
             }
-            fpath = path + ["default"]
-            logging.info(fpath)
-            createFile(fpath, json.dumps(filedata))
-            dirobj = getFile(path)
+            storage.putItem(path, json.dumps(filedata))
 
-        entries = dirobj.files
-        logging.info(entries)
-        logging.info("done")
-
+        entries = [path]
         return render_template("allusersheets.html", entries=entries)
 
+    @staticmethod
     def post():
         if 'user' not in session:
             return redirect('/')
-        
+
         user = session['user']
-
         fname = request.form.get('fname')
-        logging.info("fname is " + fname)
         sheetstr = request.form.get("data", None)
-        path = ["home", user, fname]
 
+        path = f"home/{user}/{fname}.json"
         if sheetstr is not None:
-            fileobj = getFile(path)
-            if fileobj is None:
-                createFile(path, sheetstr)
+            if storage.existsItem(path):
+                storage.putItem(path, sheetstr)  
             else:
-                updateFile(path, sheetstr)
+                storage.putItem(path, sheetstr)
 
         return jsonify(data="Done")
-

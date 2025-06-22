@@ -4,19 +4,6 @@ import json
 from dotenv import load_dotenv
 import os
 
-# Route Handlers
-from route_handlers.Auth.UserLoginHandler import UserLoginHandler
-from route_handlers.Auth.UserRegisterHandler import UserRegisterHandler
-from route_handlers.Auth.UserLostPasswordHandler import UserLostPasswordHandler
-from route_handlers.Auth.UserLogoutHandler import UserLogoutHandler
-from route_handlers.Auth.PWResetHandler import PWResetHandler
-from route_handlers.SaveHandler import SaveHandler
-from route_handlers.HomeHandler import HomeHandler
-from route_handlers.UserSheetHandler import UserSheetHandler
-from route_handlers.DownloadFileHander import DownloadFileHander
-from route_handlers.ImportHandler import ImportHandler
-from route_handlers.HTMLToPDFHandler import HtmlToPdfHandler
-
 # Load environment variables from .env file
 load_dotenv()
 
@@ -33,14 +20,37 @@ app.config.update(
     APP_TITLE=os.getenv('APP_TITLE')
 )
 
-# Initialising Database
+# Firebase test routes
+@app.route('/test-firebase-login')
+def test_firebase_login():
+    try:
+        from cloud.authenticate.firebase_auth import login_user
+        email = "test@example.com"
+        password = "testpassword"
+        user = login_user(email, password)
+        return f"✅ Firebase login successful for: {user['email']}"
+    except Exception as e:
+        return f"❌ Firebase login failed: {str(e)}"
+
+@app.route('/test-firebase-register')
+def test_firebase_register():
+    try:
+        from cloud.authenticate.firebase_auth import register_user
+        email = "test@example.com"
+        password = "testpassword"
+        user = register_user(email, password)
+        return f"✅ Firebase user registered: {user['email']}"
+    except Exception as e:
+        return f"❌ Firebase registration failed: {str(e)}"
+
+# Initialize SQLAlchemy
 db = SQLAlchemy(app)
 
 @app.context_processor
 def inject_app_title():
     return dict(APP_TITLE=app.config['APP_TITLE'])
 
-# Base Handlers
+# Base Handler
 class BaseHandler:
     @property
     def db(self):
@@ -60,16 +70,27 @@ class BaseHandler:
         else:
             session.pop('user', None)
 
-# This code runs before every request
 @app.before_request
 def before_request():
     g.handler = BaseHandler()
 
-# This code runs when app shuts down
 @app.teardown_appcontext
 def teardown_db(error):
     if 'db' in g:
         g.db.session.close()
+
+# Route Handlers
+from route_handlers.Auth.UserLoginHandler import UserLoginHandler
+from route_handlers.Auth.UserRegisterHandler import UserRegisterHandler
+from route_handlers.Auth.UserLostPasswordHandler import UserLostPasswordHandler
+from route_handlers.Auth.UserLogoutHandler import UserLogoutHandler
+from route_handlers.Auth.PWResetHandler import PWResetHandler
+from route_handlers.SaveHandler import SaveHandler
+from route_handlers.HomeHandler import HomeHandler
+from route_handlers.UserSheetHandler import UserSheetHandler
+from route_handlers.DownloadFileHander import DownloadFileHander
+from route_handlers.ImportHandler import ImportHandler
+from route_handlers.HTMLToPDFHandler import HtmlToPdfHandler
 
 # Routes
 @app.route('/', methods=['GET'])
@@ -141,11 +162,11 @@ def import_post():
     return ImportHandler.post()
 
 @app.route('/htmltopdf', methods=['GET'])
-def import_post():
+def htmltopdf_get():
     return HtmlToPdfHandler.get()
 
 @app.route('/htmltopdf', methods=['POST'])
-def import_post():
+def htmltopdf_post():
     return HtmlToPdfHandler.post()
 
 if __name__ == '__main__':
